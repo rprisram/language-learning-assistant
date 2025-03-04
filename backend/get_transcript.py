@@ -1,5 +1,6 @@
 from youtube_transcript_api import YouTubeTranscriptApi
 from typing import Optional, List, Dict
+import os
 
 
 class YouTubeTranscriptDownloader:
@@ -54,17 +55,40 @@ class YouTubeTranscriptDownloader:
         
         Args:
             transcript (List[Dict]): Transcript data
-            filename (str): Output filename
+            filename (str): Output filename or URL
             
         Returns:
             bool: True if successful, False otherwise
         """
-        filename = f"./transcripts/{filename}.txt"
+        # If transcript is None, return False
+        if not transcript:
+            return False
+            
+        # Extract video ID if URL is provided
+        if "youtube.com" in filename or "youtu.be" in filename:
+            filename = self.extract_video_id(filename)
+            
+        if not filename:
+            print("Invalid filename or URL")
+            return False
+            
+        # Get the directory of the current script
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        # Path to transcripts directory (in the same directory as this script)
+        transcripts_dir = os.path.join(script_dir, "transcripts")
+        
+        # Ensure transcripts directory exists
+        os.makedirs(transcripts_dir, exist_ok=True)
+        
+        # Full path to the output file
+        filepath = os.path.join(transcripts_dir, f"{filename}.txt")
         
         try:
-            with open(filename, 'w', encoding='utf-8') as f:
+            with open(filepath, 'w', encoding='utf-8') as f:
                 for entry in transcript:
                     f.write(f"{entry['text']}\n")
+            print(f"Transcript saved successfully to {filepath}")
             return True
         except Exception as e:
             print(f"Error saving transcript: {str(e)}")
@@ -81,19 +105,19 @@ def main(video_url, print_transcript=False):
         # Save transcript
         video_id = downloader.extract_video_id(video_url)
         if downloader.save_transcript(transcript, video_id):
-            print(f"Transcript saved successfully to {video_id}.txt")
             #Print transcript if True
             if print_transcript:
                 # Print transcript
                 for entry in transcript:
                     print(f"{entry['text']}")
+            return transcript
         else:
             print("Failed to save transcript")
-        
+            return None
     else:
         print("Failed to get transcript")
+        return None
 
 if __name__ == "__main__":
     video_id = "https://www.youtube.com/watch?v=sY7L5cfCWno&list=PLkGU7DnOLgRMl-h4NxxrGbK-UdZHIXzKQ"  # Extract from URL: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     transcript = main(video_id, print_transcript=True)
-        

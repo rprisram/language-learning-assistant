@@ -1,12 +1,22 @@
+# At the top of main.py, add:
+import sys
+import os
+from pathlib import Path
+
+# Get the absolute path to the project root directory
+root_dir = Path(__file__).parent.parent
+sys.path.append(str(root_dir))
+
+# Now import your module
+from backend.chat import BedrockChat
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import streamlit as st
 from typing import Dict
 import json
 from collections import Counter
 import re
-
-
-from backend.chat import BedrockChat
-
+from backend.get_transcript import YouTubeTranscriptDownloader
 
 # Page config
 st.set_page_config(
